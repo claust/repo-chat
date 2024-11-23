@@ -1,0 +1,8 @@
+{
+  "name": "repo-chat",
+  "private": true,
+  "scripts": {
+    "lint": "npx oxlint"
+  },
+  "workspaces": ["packages/*"]
+}
