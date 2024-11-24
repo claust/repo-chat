@@ -1,0 +1,15 @@
+{
+  "name": "chroma",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "update": "conda env update --file environment.yml --prune",
+    "start": "conda run -n chroma --no-capture-output chroma run --path ./repo-chat"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
