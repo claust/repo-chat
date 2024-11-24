@@ -13,7 +13,7 @@ export async function updater(c: Context<BlankEnv, "/updater", BlankInput>): Pro
     const folder = './../..';
     var { files, log } = await getFilesToProcess(folder);
     log += `Collection ${collection.name}, ${countInitial} documents\n\n`;
-    var currentIds = [];
+    var currentIds: string[] = [];
     var docs = [];
     for (const file of files) {
         if (!await Bun.file(file).exists()) {
@@ -34,6 +34,12 @@ export async function updater(c: Context<BlankEnv, "/updater", BlankInput>): Pro
     const countFinal = await collection.count();
     log += `Collection ${collection.name}, ${countInitial - countFinal} documents ${countInitial - countFinal < 0 ? 'removed' : 'added'}\n\n`;
 
+    // Remove docs that are no longer in the repo
+    const allIds = await collection.peek({ limit: 1000 });
+    const idsToRemove = allIds.ids.filter(id => !currentIds.includes(id));
+    log += `Removing ${idsToRemove.length} documents\n\n`;
+    await collection.delete({ ids: idsToRemove });
+    log += `Collection ${collection.name}, ${await collection.count()} documents\n\n`;
     return c.text(log);
 }
 
