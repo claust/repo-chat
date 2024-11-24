@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "lint": "bunx oxlint",
-    "start": "bun --watch run index.ts"
+    "start": "bun --inspect --watch run index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
