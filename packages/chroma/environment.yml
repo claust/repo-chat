@@ -1,0 +1,8 @@
+name: chroma
+channels:
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+prefix: /Users/claus/miniconda3/envs/chroma
+
+dependencies:
+  - conda-forge::chromadb

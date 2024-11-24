@@ -13,6 +13,8 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "chromadb": "^1.9.4",
+    "chromadb-default-embed": "^2.13.2",
     "hono": "^4.6.11"
   }
 }
