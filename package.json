@@ -2,7 +2,10 @@
   "name": "repo-chat",
   "private": true,
   "scripts": {
+    "format": "prettier --write .",
     "lint": "bunx oxlint"
   },
-  "workspaces": ["packages/*"]
+  "workspaces": [
+    "packages/*"
+  ]
 }
