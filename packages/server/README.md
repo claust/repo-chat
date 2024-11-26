@@ -5,17 +5,20 @@
 Macos
 
 - Install pipx
-````
+
+```
 brew install pipx
 pipx ensurepath
-````
+```
+
 - Install Poetry
-`````
+
+```
 pipx install poetry
-`````
+```
 
 - Install dependencies
-`````
-poetry install
-`````
 
+```
+poetry install
+```
