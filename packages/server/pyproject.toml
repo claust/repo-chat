@@ -8,6 +8,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.13"
 langgraph = "^0.2.53"
+typing-extensions = "^4.12.2"
+langchain-openai = "^0.2.10"
 
 
 [build-system]
