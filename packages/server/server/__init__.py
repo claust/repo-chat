@@ -49,8 +49,8 @@ graph_builder.add_node("tools", tool_node)
 # graph_builder.add_edge(START, "chatbot")
 graph_builder.set_entry_point("chatbot")
 graph_builder.add_conditional_edges(
-  "chatbot",
-  tools_condition,
+    "chatbot",
+    tools_condition,
 )
 graph_builder.add_edge("tools", "chatbot")
 graph_builder.add_edge("chatbot", END)
@@ -59,26 +59,26 @@ graph = graph_builder.compile()
 
 
 def stream_graph_updates(user_input: str):
-  for event in graph.stream({"messages": [("user", user_input)]}):
-    for value in event.values():
-      messages = value["messages"]
-      if isinstance(messages, list):
-        message = messages[-1]
-      else:
-        message = messages
-      print("Assistant:", message.content)
+    for event in graph.stream({"messages": [("user", user_input)]}):
+        for value in event.values():
+            messages = value["messages"]
+            if isinstance(messages, list):
+                message = messages[-1]
+            else:
+                message = messages
+            print("Assistant:", message.content)
 
 
 while True:
-  try:
-    user_input = input("User: ")
-    if user_input.lower() in ["exit", "quit", "q"]:
-      print("Goodbye!")
-      break
+    try:
+        user_input = input("User: ")
+        if user_input.lower() in ["exit", "quit", "q"]:
+            print("Goodbye!")
+            break
 
-    stream_graph_updates(user_input)
-  except:
-    user_input = "What do you know about Denmark?"
-    print("User:", user_input)
-    stream_graph_updates(user_input)
-    break
+        stream_graph_updates(user_input)
+    except:
+        user_input = "What do you know about Denmark?"
+        print("User:", user_input)
+        stream_graph_updates(user_input)
+        break
