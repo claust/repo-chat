@@ -62,7 +62,8 @@ def stream_graph_updates(user_input: str):
                 message = value[-1]
             else:
                 message = value
-            print("Assistant:", message.pretty_print())
+            # print("Assistant:", message)
+            message.pretty_print()
 
 
 while True:
