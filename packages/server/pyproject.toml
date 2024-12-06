@@ -12,6 +12,7 @@ typing-extensions = "^4.12.2"
 langchain-openai = "^0.2.10"
 duckduckgo-search = "^6.3.7"
 langchain-community = "^0.3.8"
+python-dotenv = "^1.0.1"
 
 
 [build-system]

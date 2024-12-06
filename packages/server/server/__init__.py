@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -6,16 +7,8 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
 from typing import Annotated
-import getpass
-import os
 
-
-def _set_env(var: str):
-    if not os.environ.get(var):
-        os.environ[var] = getpass.getpass(f"{var}: ")
-
-
-_set_env("OPENAI_API_KEY")
+load_dotenv()
 
 
 class State(TypedDict):
