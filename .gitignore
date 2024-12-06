@@ -175,3 +175,8 @@ dist
 .DS_Store
 packages/chroma/repo-chat
 packages/chroma/chroma.log
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

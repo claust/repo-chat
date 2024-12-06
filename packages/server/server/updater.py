@@ -1,74 +1,50 @@
-import hashlib
-import os
+import chromadb
+from server.file_utilities import get_files_to_process, handle_file
 
-ignored_extensions = [".bin", ".sqlite3"]
+# Init a Chroma client
+chroma_client = chromadb.HttpClient(host='localhost', port=8000)
+collection = chroma_client.get_or_create_collection('repo-chat')
 
-
-def get_files_to_process(folder: str) -> dict:
-    files_and_dirs = []
-    for root, dirs, files in os.walk(folder):
-        for name in files:
-            files_and_dirs.append(os.path.join(root, name))
-
-    log = ""
-    print("Found", len(files_and_dirs), "folders/files")
-    log += f"Found {len(files_and_dirs)} folders/files\n\n"
-
-    files = [
-        f for f in files_and_dirs
-        if "node_modules" not in f and not f.startswith(".git") and not any(f.endswith(ext) for ext in ignored_extensions)
-    ]
-    log += f"Found {len(files)} files (excluding ignored folders)\n\n"
-
-    return {"files": files, "log": log}
-
-
-def handle_file(filepath: str) -> dict:
-    """
-    Reads the content of a file, if not binary, and returns a dictionary containing the content and its MD5 hash.
-
-    Args:
-      filepath (str): The path to the file to be read.
-
-    Returns:
-      dict: A dictionary with two keys:
-        - 'filepath': The path to the file.
-        - 'content': The content of the file as a string.
-        - 'id': The MD5 hash of the file content.
-    """
-    if is_binary_file(filepath):
-        return None
-
-    # Read the file in text mode
-    with open(filepath, 'r', encoding='utf-8') as file:
-        content = file.read()
-        return {
-            'filepath': filepath,
-            'content': content,
-            'id': hashlib.md5(content.encode()).hexdigest()
-        }
-
-
-def is_binary_file(filepath: str) -> bool:
-    """
-    Checks if a file is binary by reading the first 1024 bytes and looking for null bytes.
-
-    Args:
-        filepath (str): The path to the file to be checked.
-
-    Returns:
-        bool: True if the file is binary, False otherwise.
-    """
-    with open(filepath, 'rb') as file:
-        if b'\0' in file.read(1024):
-            return True
-    return False
-
+number_of_docs = collection.count()
+print('Number of documents in collection:', number_of_docs)
 
 directory_path = './../'
-dict = get_files_to_process(directory_path)
+codebase = get_files_to_process(directory_path)
 
-for file in dict['files']:
-    file_result = handle_file(file)
-    if file_result:
-        print(file_result['id'], file_result['filepath'])
+file_results = [handle_file(file) for file in codebase['files']]
+for result in file_results:
+    print(result['id'], result['filepath'])
+
+ids = [result['id'] for result in file_results]
+
+# Make sure the ids are unique
+unique_ids = set(ids)
+non_unique_ids = set([id for id in ids if ids.count(id) > 1])
+if len(non_unique_ids) > 0:
+    print('Non-unique ids:', non_unique_ids)
+    # print the paths of the files with non-unique ids
+    for id in non_unique_ids:
+        print('Files with id:', id)
+        for result in file_results:
+            if result['id'] == id:
+                print(result['filepath'])
+        print()
+
+assert len(ids) == len(set(ids)), 'The ids are not unique'
+
+docs = [result['content'] for result in file_results]
+collection.upsert(ids, documents=docs)
+
+print("Added", len(docs), "docs to collection")
+count_final = collection.count()
+log = f"Collection {collection.name}, {abs(number_of_docs - count_final)} documents {
+    'removed' if number_of_docs - count_final < 0 else 'added'}\n\n"
+
+# Remove docs that are no longer in the repo
+all_ids = collection.peek(limit=1000)['ids']
+ids_to_remove = [id for id in all_ids if id not in ids]
+log += f"Removing {len(ids_to_remove)} documents\n\n"
+collection.delete(ids=ids_to_remove)
+log += f"Collection {collection.name}, {collection.count()} documents\n\n"
+
+print(log)
