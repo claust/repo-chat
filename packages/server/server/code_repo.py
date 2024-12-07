@@ -1,17 +1,17 @@
 from typing import List
-import chromadb
+from chromadb import Collection, HttpClient, QueryResult
 
 
 class CodeRepository():
     def __init__(self, host='localhost', port=8000, collection_name='repo-chat'):
-        self._chroma_client = chromadb.HttpClient(host=host, port=port)
+        self._chroma_client = HttpClient(host=host, port=port)
         self._collection = self._chroma_client.get_or_create_collection(
             collection_name)
 
     def name(self) -> str:
         return self._collection.name
 
-    def collection(self) -> chromadb.Collection:
+    def collection(self) -> Collection:
         return self._collection
 
     def count(self) -> int:
@@ -25,3 +25,8 @@ class CodeRepository():
 
     def get_all_ids(self) -> List[str]:
         return self._collection.peek(limit=1000)['ids']
+
+    def search(self, query: str) -> List[List[str]] | None:
+        result: QueryResult = self._collection.query(
+            query_texts=[query], n_results=5)
+        return result["documents"]

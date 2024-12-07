@@ -1,5 +1,6 @@
 import hashlib
 import os
+import pathspec
 from typing import List
 from dataclasses import dataclass
 
@@ -31,27 +32,48 @@ def get_files_to_process(base_folder: str) -> FileProcessResult:
             - files: A list of text file paths that do not include "node_modules" and do not start with ".git" or end with any of the ignored extensions.
             - log: A string log of the scanning process, including the number of files found and the number of files after excluding ignored folders.
     """
+    spec = generate_gitignore_spec(base_folder)
     files_and_dirs = []
+
     for root, dirs, files in os.walk(base_folder):
         for name in files:
             file_path = os.path.join(root, name)
-            if not is_binary_file(file_path):
+            relative_path = os.path.relpath(file_path, base_folder)
+            if not spec.match_file(relative_path) and not is_binary_file(file_path):
                 files_and_dirs.append(file_path)
 
     log = ""
     print("Found", len(files_and_dirs), "files")
     log += f"Found {len(files_and_dirs)} files\n\n"
 
-    files = [
-        f for f in files_and_dirs
-        if "node_modules" not in f and not f.startswith(".git") and not any(f.endswith(ext) for ext in ignored_extensions)
-    ]
+    def is_ignored(path) -> bool:
+        relative_path = os.path.relpath(path, base_folder)
+        if spec.match_file(relative_path):
+            return True
+        if ".git" in path.split(os.sep):
+            return True
+        if any(path.endswith(ext) for ext in ignored_extensions):
+            return True
+        return False
+
+    files = [f for f in files_and_dirs if not is_ignored(f)]
     log += f"Found {len(files)} files (excluding ignored folders)\n\n"
 
     return FileProcessResult(files=files, log=log)
 
 
-def handle_file(filepath: str) -> FileHandleResult | None:
+def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
+    gitignore_path = os.path.join(base_folder, '.gitignore')
+    ignored_patterns = []
+    if os.path.exists(gitignore_path):
+        with open(gitignore_path, 'r') as gitignore_file:
+            ignored_patterns = gitignore_file.read().splitlines()
+
+    spec = pathspec.PathSpec.from_lines('gitwildmatch', ignored_patterns)
+    return spec
+
+
+def handle_file(base_folder: str, filepath: str) -> FileHandleResult | None:
     """
     Reads the content of a file, if not binary, and returns a FileHandleResult containing the content and its MD5 hash.
 
@@ -69,10 +91,12 @@ def handle_file(filepath: str) -> FileHandleResult | None:
 
     with open(filepath, 'r', encoding='utf-8') as file:
         content = file.read()
+        relative_filepath = os.path.relpath(
+            filepath, os.path.dirname(base_folder))
         return FileHandleResult(
             filepath=filepath,
             content=content,
-            id=hashlib.md5((filepath + content).encode()).hexdigest()
+            id=hashlib.md5((relative_filepath + content).encode()).hexdigest()
         )
 
 
@@ -87,6 +111,4 @@ def is_binary_file(filepath: str) -> bool:
         bool: True if the file is binary, False otherwise.
     """
     with open(filepath, 'rb') as file:
-        if b'\0' in file.read(1024):
-            return True
-    return False
+        return b'\0' in file.read(1024)

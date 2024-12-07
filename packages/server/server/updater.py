@@ -6,11 +6,11 @@ code_repo = CodeRepository()
 number_of_docs = code_repo.count()
 print('Number of documents in collection:', number_of_docs)
 
-directory_path = './../'
-codebase = get_files_to_process(directory_path)
+base_folder = './../../'
+codebase = get_files_to_process(base_folder)
 
-file_results = [result for result in (handle_file(
-    file) for file in codebase.files) if result is not None]
+file_results = [result for result in (handle_file(base_folder,
+                                                  file) for file in codebase.files) if result is not None]
 for result in file_results:
     print(result.id, result.filepath)
 
@@ -42,8 +42,10 @@ log = f"Collection {code_repo.name()}, {abs(number_of_docs - count_final)} docum
 # Remove docs that are no longer in the repo
 all_ids = code_repo.get_all_ids()
 ids_to_remove = [id for id in all_ids if id not in ids]
-log += f"Removing {len(ids_to_remove)} documents\n\n"
-code_repo.remove_docs(ids=ids_to_remove)
+if len(ids_to_remove) > 0:
+    log += f"Removing {len(ids_to_remove)} documents\n\n"
+    code_repo.remove_docs(ids=ids_to_remove)
+
 log += f"Collection {code_repo.name()}, {code_repo.count()} documents\n\n"
 
 print(log)

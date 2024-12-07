@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from langchain.agents import tool
 from langchain_core.messages.base import BaseMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
@@ -8,7 +9,9 @@ from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
-from typing import Annotated
+from typing import Annotated, List
+
+from server.code_repo import CodeRepository
 
 load_dotenv()
 
@@ -21,12 +24,16 @@ memory = MemorySaver()
 
 # Tools
 searchTool = DuckDuckGoSearchRun()
-# result = searchTool.invoke("Ballerupcentrets åbningstider?")
-
-# def code_searcher(query: str):
+code_repo = CodeRepository()
 
 
-tools = [searchTool]
+@tool
+def code_searcher(query: str) -> List[List[str]] | None:
+    """ Searches the code repository for the given query. """
+    return code_repo.search(query)
+
+
+tools = [searchTool, code_searcher]
 tool_node = ToolNode(tools=tools)
 
 # LLM
@@ -63,7 +70,6 @@ config: RunnableConfig = {"configurable":  {"thread_id": "1"}}
 def stream_graph_updates(user_input: str) -> None:
     for event in graph.stream({"messages": [("user", user_input)]}, config, stream_mode="values"):
         for value in event["messages"]:
-            # messages = value["messages"]
             if isinstance(value, list):
                 message = value[-1]
             else:
@@ -75,7 +81,7 @@ def stream_graph_updates(user_input: str) -> None:
 while True:
     try:
         user_input = input("User: ")
-        if user_input.lower() in ["exit", "quit", "q"]:
+        if user_input.lower() in ["exit", "quit", "q", "bye"]:
             print("Goodbye!")
             break
 
