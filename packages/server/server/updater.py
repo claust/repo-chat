@@ -1,13 +1,7 @@
-import code
-import chromadb
 from server.code_repo import CodeRepository
 from server.file_utilities import get_files_to_process, handle_file
 
 code_repo = CodeRepository()
-
-# Init a Chroma client
-# chroma_client = chromadb.HttpClient(host='localhost', port=8000)
-# collection = chroma_client.get_or_create_collection('repo-chat')
 
 number_of_docs = code_repo.count()
 print('Number of documents in collection:', number_of_docs)
@@ -15,11 +9,12 @@ print('Number of documents in collection:', number_of_docs)
 directory_path = './../'
 codebase = get_files_to_process(directory_path)
 
-file_results = [handle_file(file) for file in codebase['files']]
+file_results = [result for result in (handle_file(
+    file) for file in codebase.files) if result is not None]
 for result in file_results:
-    print(result['id'], result['filepath'])
+    print(result.id, result.filepath)
 
-ids = [result['id'] for result in file_results]
+ids = [result.id for result in file_results]
 
 # Make sure the ids are unique
 unique_ids = set(ids)
@@ -30,13 +25,13 @@ if len(non_unique_ids) > 0:
     for id in non_unique_ids:
         print('Files with id:', id)
         for result in file_results:
-            if result['id'] == id:
-                print(result['filepath'])
+            if result.id == id:
+                print(result.filepath)
         print()
 
 assert len(ids) == len(set(ids)), 'The ids are not unique'
 
-docs = [result['content'] for result in file_results]
+docs = [result.content for result in file_results]
 code_repo.upsert(ids, docs)
 
 print("Added", len(docs), "docs to collection")

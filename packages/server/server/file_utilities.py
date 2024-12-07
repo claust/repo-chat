@@ -1,10 +1,25 @@
 import hashlib
 import os
+from typing import List
+from dataclasses import dataclass
 
 ignored_extensions = [".bin", ".sqlite3"]
 
 
-def get_files_to_process(base_folder: str) -> dict:
+@dataclass
+class FileProcessResult:
+    files: List[str]
+    log: str
+
+
+@dataclass
+class FileHandleResult:
+    filepath: str
+    content: str
+    id: str
+
+
+def get_files_to_process(base_folder: str) -> FileProcessResult:
     """
     Recursively scans the given folder and returns a dictionary containing a list of files to process and a log.
 
@@ -12,9 +27,9 @@ def get_files_to_process(base_folder: str) -> dict:
         base_folder (str): The path to the folder to scan.
 
     Returns:
-        dict: A dictionary with two keys:
-            - "files": A list of text file paths that do not include "node_modules" and do not start with ".git" or end with any of the ignored extensions.
-            - "log": A string log of the scanning process, including the number of files found and the number of files after excluding ignored folders.
+        FileProcessResult: A dataclass with two attributes:
+            - files: A list of text file paths that do not include "node_modules" and do not start with ".git" or end with any of the ignored extensions.
+            - log: A string log of the scanning process, including the number of files found and the number of files after excluding ignored folders.
     """
     files_and_dirs = []
     for root, dirs, files in os.walk(base_folder):
@@ -33,32 +48,32 @@ def get_files_to_process(base_folder: str) -> dict:
     ]
     log += f"Found {len(files)} files (excluding ignored folders)\n\n"
 
-    return {"files": files, "log": log}
+    return FileProcessResult(files=files, log=log)
 
 
-def handle_file(filepath: str) -> dict:
+def handle_file(filepath: str) -> FileHandleResult | None:
     """
-    Reads the content of a file, if not binary, and returns a dictionary containing the content and its MD5 hash.
+    Reads the content of a file, if not binary, and returns a FileHandleResult containing the content and its MD5 hash.
 
     Args:
       filepath (str): The path to the file to be read.
 
     Returns:
-      dict: A dictionary with two keys:
-        - 'filepath': The path to the file.
-        - 'content': The content of the file as a string.
-        - 'id': The MD5 hash of the file content.
+      FileHandleResult: A dataclass with three attributes:
+        - filepath: The path to the file.
+        - content: The content of the file as a string.
+        - id: The MD5 hash of the file content.
     """
     if is_binary_file(filepath):
         return None
 
     with open(filepath, 'r', encoding='utf-8') as file:
         content = file.read()
-        return {
-            'filepath': filepath,
-            'content': content,
-            'id': hashlib.md5((filepath + content).encode()).hexdigest()
-        }
+        return FileHandleResult(
+            filepath=filepath,
+            content=content,
+            id=hashlib.md5((filepath + content).encode()).hexdigest()
+        )
 
 
 def is_binary_file(filepath: str) -> bool:

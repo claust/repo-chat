@@ -1,9 +1,11 @@
 from dotenv import load_dotenv
+from langchain_core.messages.base import BaseMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.graph.message import add_messages
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
 from typing import Annotated
@@ -32,7 +34,7 @@ llm = ChatOpenAI(model="gpt-3.5-turbo")
 llm_with_tools = llm.bind_tools(tools)
 
 
-def chatbot(state: State):
+def chatbot(state: State) -> dict[str, BaseMessage]:
     return {"messages": llm_with_tools.invoke(state["messages"])}
 
 
@@ -55,10 +57,10 @@ graph_builder.add_edge("chatbot", END)
 
 graph = graph_builder.compile(checkpointer=memory)
 
-config = {"configurable":  {"thread_id": "1"}}
+config: RunnableConfig = {"configurable":  {"thread_id": "1"}}
 
 
-def stream_graph_updates(user_input: str):
+def stream_graph_updates(user_input: str) -> None:
     for event in graph.stream({"messages": [("user", user_input)]}, config, stream_mode="values"):
         for value in event["messages"]:
             # messages = value["messages"]
