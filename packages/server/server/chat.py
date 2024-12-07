@@ -20,6 +20,10 @@ memory = MemorySaver()
 # Tools
 searchTool = DuckDuckGoSearchRun()
 # result = searchTool.invoke("Ballerupcentrets åbningstider?")
+
+# def code_searcher(query: str):
+
+
 tools = [searchTool]
 tool_node = ToolNode(tools=tools)
 

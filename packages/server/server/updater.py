@@ -1,11 +1,15 @@
+import code
 import chromadb
+from server.code_repo import CodeRepository
 from server.file_utilities import get_files_to_process, handle_file
 
-# Init a Chroma client
-chroma_client = chromadb.HttpClient(host='localhost', port=8000)
-collection = chroma_client.get_or_create_collection('repo-chat')
+code_repo = CodeRepository()
 
-number_of_docs = collection.count()
+# Init a Chroma client
+# chroma_client = chromadb.HttpClient(host='localhost', port=8000)
+# collection = chroma_client.get_or_create_collection('repo-chat')
+
+number_of_docs = code_repo.count()
 print('Number of documents in collection:', number_of_docs)
 
 directory_path = './../'
@@ -33,18 +37,18 @@ if len(non_unique_ids) > 0:
 assert len(ids) == len(set(ids)), 'The ids are not unique'
 
 docs = [result['content'] for result in file_results]
-collection.upsert(ids, documents=docs)
+code_repo.upsert(ids, docs)
 
 print("Added", len(docs), "docs to collection")
-count_final = collection.count()
-log = f"Collection {collection.name}, {abs(number_of_docs - count_final)} documents {
+count_final = code_repo.count()
+log = f"Collection {code_repo.name()}, {abs(number_of_docs - count_final)} documents {
     'removed' if number_of_docs - count_final < 0 else 'added'}\n\n"
 
 # Remove docs that are no longer in the repo
-all_ids = collection.peek(limit=1000)['ids']
+all_ids = code_repo.get_all_ids()
 ids_to_remove = [id for id in all_ids if id not in ids]
 log += f"Removing {len(ids_to_remove)} documents\n\n"
-collection.delete(ids=ids_to_remove)
-log += f"Collection {collection.name}, {collection.count()} documents\n\n"
+code_repo.remove_docs(ids=ids_to_remove)
+log += f"Collection {code_repo.name()}, {code_repo.count()} documents\n\n"
 
 print(log)
