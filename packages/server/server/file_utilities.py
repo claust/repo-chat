@@ -14,8 +14,9 @@ class FileProcessResult:
 
 
 @dataclass
-class FileHandleResult:
-    filepath: str
+class FileResult:
+    file_path: str
+    relative_file_path: str
     content: str
     id: str
 
@@ -73,7 +74,7 @@ def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
     return spec
 
 
-def handle_file(base_folder: str, filepath: str) -> FileHandleResult | None:
+def handle_file(base_folder: str, filepath: str) -> FileResult:
     """
     Reads the content of a file, if not binary, and returns a FileHandleResult containing the content and its MD5 hash.
 
@@ -86,15 +87,14 @@ def handle_file(base_folder: str, filepath: str) -> FileHandleResult | None:
         - content: The content of the file as a string.
         - id: The MD5 hash of the file content.
     """
-    if is_binary_file(filepath):
-        return None
-
     with open(filepath, 'r', encoding='utf-8') as file:
         content = file.read()
         relative_filepath = os.path.relpath(
             filepath, os.path.dirname(base_folder))
-        return FileHandleResult(
-            filepath=filepath,
+
+        return FileResult(
+            file_path=filepath,
+            relative_file_path=relative_filepath,
             content=content,
             id=hashlib.md5((relative_filepath + content).encode()).hexdigest()
         )

@@ -9,10 +9,10 @@ print('Number of documents in collection:', number_of_docs)
 base_folder = './../../'
 codebase = get_files_to_process(base_folder)
 
-file_results = [result for result in (handle_file(base_folder,
-                                                  file) for file in codebase.files) if result is not None]
+file_results = [result for result in (handle_file(
+    base_folder, file) for file in codebase.files)]
 for result in file_results:
-    print(result.id, result.filepath)
+    print(result.id, result.relative_file_path)
 
 ids = [result.id for result in file_results]
 
@@ -26,7 +26,7 @@ if len(non_unique_ids) > 0:
         print('Files with id:', id)
         for result in file_results:
             if result.id == id:
-                print(result.filepath)
+                print(result.relative_file_path)
         print()
 
 assert len(ids) == len(set(ids)), 'The ids are not unique'
