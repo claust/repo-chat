@@ -1,5 +1,4 @@
-from hmac import new
-import re
+import os
 from server.code_repo import CodeRepository
 from server.file_utilities import get_files_to_process, handle_file
 
@@ -8,14 +7,13 @@ code_repo = CodeRepository()
 number_of_docs = code_repo.count()
 print(f'{number_of_docs} documents indexed')
 
-base_folder = './../../'
+base_folder = os.getenv('BASE_FOLDER') or './../../'
 codebase = get_files_to_process(base_folder)
 
 file_results = [result for result in (handle_file(
     base_folder, file) for file in codebase["files"])]
-for result in file_results:
+for result in file_results[:20]:
     print(result["id"], result["relative_file_path"])
-
 
 stored_ids = code_repo.get_all_ids()
 repo_ids = [result["id"] for result in file_results]
@@ -42,7 +40,10 @@ assert len(new_ids) == len(set(new_ids)), 'The ids are not unique'
 
 if len(new_ids) > 0:
     print(f"Adding {len(new_ids)} new documents\n\n")
-    code_repo.upsert(new_ids, new_docs)
+    batch_size = 100
+    for i in range(0, len(new_ids), batch_size):
+        print(f"Adding {i} to {i + batch_size} documents")
+        code_repo.upsert(new_ids[i:i + batch_size], new_docs[i:i + batch_size])
     print("Added", len(new_docs), "docs to collection")
 # Remove docs that are no longer in the repo
 if len(removed_ids) > 0:

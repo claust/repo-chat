@@ -24,7 +24,7 @@ class CodeRepository():
         self._collection.delete(ids=ids)
 
     def get_all_ids(self) -> List[str]:
-        return self._collection.peek(limit=1000)['ids']
+        return self._collection.peek(limit=100000)['ids']
 
     def search(self, query: str) -> List[List[str]] | None:
         result: QueryResult = self._collection.query(

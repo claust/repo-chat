@@ -2,7 +2,6 @@ import hashlib
 import os
 import pathspec
 from typing import List
-from dataclasses import dataclass
 from typing import TypedDict
 
 ignored_extensions = [".bin", ".sqlite3"]
@@ -33,7 +32,8 @@ def get_files_to_process(base_folder: str) -> FileProcessResult:
     """
     spec = generate_gitignore_spec(base_folder)
     files_and_dirs = []
-
+    print(f"Scanning files and directories in {base_folder} ({
+          os.path.abspath(base_folder)})")
     for root, dirs, files in os.walk(base_folder):
         for name in files:
             file_path = os.path.join(root, name)
@@ -41,7 +41,8 @@ def get_files_to_process(base_folder: str) -> FileProcessResult:
             if not spec.match_file(relative_path) and not is_binary_file(file_path):
                 files_and_dirs.append(file_path)
 
-    print("Found", len(files_and_dirs), "files")
+    all_files = len(files_and_dirs)
+    print("Found", all_files, "files and dirs")
 
     def is_ignored(path) -> bool:
         relative_path = os.path.relpath(path, base_folder)
@@ -54,7 +55,9 @@ def get_files_to_process(base_folder: str) -> FileProcessResult:
         return False
 
     files = [f for f in files_and_dirs if not is_ignored(f)]
-    print(f"Found {len(files)} files (excluding ignored folders)\n\n")
+    files_to_index = len(files)
+    print(f"Found {files_to_index} files to index (ignoring {
+          all_files - files_to_index})\n\n")
 
     return FileProcessResult(files=files)
 
@@ -68,6 +71,9 @@ def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
 
     spec = pathspec.PathSpec.from_lines('gitwildmatch', ignored_patterns)
     return spec
+
+
+max_file_size = 10000
 
 
 def handle_file(base_folder: str, filepath: str) -> FileResult:
@@ -86,6 +92,11 @@ def handle_file(base_folder: str, filepath: str) -> FileResult:
     """
     with open(filepath, 'r', encoding='utf-8') as file:
         content = file.read()
+        # Only take the forst 2000 characters, but log the full length if truncated
+        if len(content) > max_file_size:
+            print(
+                f"File {filepath} has {len(content)} characters, truncating to {max_file_size}")
+            content = content[:max_file_size]
         relative_filepath = os.path.relpath(
             filepath, os.path.dirname(base_folder))
 
@@ -99,13 +110,21 @@ def handle_file(base_folder: str, filepath: str) -> FileResult:
 
 def is_binary_file(filepath: str) -> bool:
     """
-    Checks if a file is binary by reading the first 1024 bytes and looking for null bytes.
+    Check if a file is binary by attempting to read and decode a portion of the file using UTF-8 encoding.
 
     Args:
         filepath (str): The path to the file to be checked.
 
     Returns:
-        bool: True if the file is binary, False otherwise.
+        bool: True if the file is binary, False if it is a text file.
     """
-    with open(filepath, 'rb') as file:
-        return b'\0' in file.read(1024)
+    try:
+        with open(filepath, 'rb') as file:
+            # Read a portion of the file
+            chunk = file.read(1024)
+            # Try to decode the chunk using UTF-8
+            chunk.decode('utf-8')
+    except UnicodeDecodeError:
+        # If a UnicodeDecodeError is raised, the file is binary
+        return True
+    return False
