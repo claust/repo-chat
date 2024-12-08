@@ -3,18 +3,16 @@ import os
 import pathspec
 from typing import List
 from dataclasses import dataclass
+from typing import TypedDict
 
 ignored_extensions = [".bin", ".sqlite3"]
 
 
-@dataclass
-class FileProcessResult:
+class FileProcessResult(TypedDict):
     files: List[str]
-    log: str
 
 
-@dataclass
-class FileResult:
+class FileResult(TypedDict):
     file_path: str
     relative_file_path: str
     content: str
@@ -43,9 +41,7 @@ def get_files_to_process(base_folder: str) -> FileProcessResult:
             if not spec.match_file(relative_path) and not is_binary_file(file_path):
                 files_and_dirs.append(file_path)
 
-    log = ""
     print("Found", len(files_and_dirs), "files")
-    log += f"Found {len(files_and_dirs)} files\n\n"
 
     def is_ignored(path) -> bool:
         relative_path = os.path.relpath(path, base_folder)
@@ -58,9 +54,9 @@ def get_files_to_process(base_folder: str) -> FileProcessResult:
         return False
 
     files = [f for f in files_and_dirs if not is_ignored(f)]
-    log += f"Found {len(files)} files (excluding ignored folders)\n\n"
+    print(f"Found {len(files)} files (excluding ignored folders)\n\n")
 
-    return FileProcessResult(files=files, log=log)
+    return FileProcessResult(files=files)
 
 
 def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
@@ -76,10 +72,11 @@ def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
 
 def handle_file(base_folder: str, filepath: str) -> FileResult:
     """
-    Reads the content of a file, if not binary, and returns a FileHandleResult containing the content and its MD5 hash.
+    Reads the content of a file, if not binary, and returns a FileResult containing the content and its MD5 hash.
 
     Args:
-      filepath (str): The path to the file to be read.
+        base_folder (str): The path to the base folder.
+        filepath (str): The path to the file to be read.
 
     Returns:
       FileHandleResult: A dataclass with three attributes:
