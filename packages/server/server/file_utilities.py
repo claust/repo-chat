@@ -76,7 +76,7 @@ def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
 max_file_size = 10000
 
 
-def handle_file(base_folder: str, filepath: str) -> FileResult:
+def read_file_content(base_folder: str, filepath: str) -> FileResult:
     """
     Reads the content of a file, if not binary, and returns a FileResult containing the content and its MD5 hash.
 

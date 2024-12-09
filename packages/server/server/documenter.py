@@ -3,7 +3,7 @@ from server.code_repo import CodeRepository
 from server.file_utilities import get_files_to_process, read_file_content
 
 
-def indexer() -> str:
+def document_code() -> str:
     code_repo = CodeRepository()
 
     number_of_docs = code_repo.count()
