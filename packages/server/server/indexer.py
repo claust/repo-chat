@@ -1,10 +1,11 @@
 import os
+from server.base_repo import BaseRepository
 from server.code_repo import CodeRepository
 from server.file_utilities import get_files_to_process, read_file_content
 
 
 def indexer() -> str:
-    code_repo = CodeRepository()
+    code_repo = BaseRepository(collection="repo-chat")
 
     number_of_docs = code_repo.count()
     print(f'{number_of_docs} documents indexed')
@@ -59,3 +60,7 @@ def indexer() -> str:
         'added' if number_of_docs - count_final <= 0 else 'removed'}\n\n"
     print(log)
     return log
+
+
+if __name__ == '__main__':
+    indexer()

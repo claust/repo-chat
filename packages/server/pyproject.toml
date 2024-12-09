@@ -17,6 +17,7 @@ chromadb = "^0.5.23"
 mypy = "^1.13.0"
 pathspec = "^0.12.1"
 fastapi = {extras = ["standard"], version = "^0.115.6"}
+langchain-ollama = "^0.2.1"
 
 
 [build-system]

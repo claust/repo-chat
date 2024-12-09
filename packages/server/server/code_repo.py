@@ -3,30 +3,31 @@ from chromadb import Collection, HttpClient, QueryResult
 
 
 class CodeRepository():
-    def __init__(self, host='localhost', port=8000, collection_name='repo-chat'):
+    def __init__(self, host='localhost', port=8000) -> None:
+
         self._chroma_client = HttpClient(host=host, port=port)
-        self._collection = self._chroma_client.get_or_create_collection(
-            collection_name)
+        self._collection_code = self._chroma_client.get_or_create_collection(
+            'repo-chat')
 
     def name(self) -> str:
-        return self._collection.name
+        return self._collection_code.name
 
     def collection(self) -> Collection:
-        return self._collection
+        return self._collection_code
 
     def count(self) -> int:
-        return self._collection.count()
+        return self._collection_code.count()
 
     def upsert(self, ids, docs) -> None:
-        self._collection.upsert(ids, documents=docs)
+        self._collection_code.upsert(ids, documents=docs)
 
     def remove_docs(self, ids: list) -> None:
-        self._collection.delete(ids=ids)
+        self._collection_code.delete(ids=ids)
 
     def get_all_ids(self) -> List[str]:
-        return self._collection.peek(limit=100000)['ids']
+        return self._collection_code.peek(limit=100000)['ids']
 
     def search(self, query: str) -> List[List[str]] | None:
-        result: QueryResult = self._collection.query(
+        result: QueryResult = self._collection_code.query(
             query_texts=[query], n_results=5)
         return result["documents"]
