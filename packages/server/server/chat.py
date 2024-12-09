@@ -1,12 +1,13 @@
 from dotenv import load_dotenv
 from langchain.agents import tool
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages.base import BaseMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.graph.message import add_messages
-from langgraph.graph import StateGraph, END
+from langgraph.graph import MessagesState, StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
 from typing import Annotated, List
@@ -29,7 +30,7 @@ code_repo = CodeRepository()
 
 @tool
 def code_searcher(query: str) -> List[List[str]] | None:
-    """ Searches the code repository for the given query. """
+    """ Searches the source code repository for the given query. """
     return code_repo.search(query)
 
 
@@ -39,10 +40,25 @@ tool_node = ToolNode(tools=tools)
 # LLM
 llm = ChatOpenAI(model="gpt-3.5-turbo")
 llm_with_tools = llm.bind_tools(tools)
+prompt_template = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are an AI assistant that knows a lot about the DIMS code repository. 
+                To answer the user's questions you will look up the code and the documentation provided by the tools.
+                You will base your answers on the information you find.
+                You can help with all code-related questions.
+                """,
+        ),
+        MessagesPlaceholder(variable_name="messages"),
+    ]
+)
 
 
 def chatbot(state: State) -> dict[str, BaseMessage]:
-    return {"messages": llm_with_tools.invoke(state["messages"])}
+    prompt = prompt_template.invoke(state)
+    response = llm_with_tools.invoke(prompt)
+    return {"messages": response}
 
 
 # Graph
