@@ -30,3 +30,11 @@ poetry env info --path
 ```
 
 ... and copy it to the "Enter interpreter path ..." in VS Code. See [guide](https://maeda.pm/2024/03/03/python-poetry-and-vs-code-2024/).
+
+## Running the server
+
+To run the dev server:
+
+```
+fastapi dev server/main.py --port 8080
+```
