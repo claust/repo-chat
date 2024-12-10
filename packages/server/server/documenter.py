@@ -14,26 +14,26 @@ class SourceCodeDocumenter:
 
     def document_code(self) -> str:
         http_client = HttpClient(host="localhost", port=8000)
-        code_repo = BaseRepository(
-            collection="repo-chat", http_client=http_client)
         documentation_repo = BaseRepository(
             collection="documentation", http_client=http_client)
 
-        number_of_docs = code_repo.count()
-        print(f'{number_of_docs} documents indexed')
+        number_of_docs = documentation_repo.count()
+        print(f'{number_of_docs} documents documented')
 
         base_folder = os.getenv('BASE_FOLDER') or './../../'
         codebase = get_files_to_process(base_folder)
 
         file_results = [result for result in (read_file_content(
-            base_folder, file) for file in codebase["files"][:20])]
-        for result in file_results[:20]:
+            base_folder, file) for file in codebase["files"])]
+        for index, result in enumerate(file_results):
+            print(index, result["id"], result["relative_file_path"])
             summary = self.prepare_summary(result)
-            print(result["id"], result["relative_file_path"], summary)
+            print(summary[:50])
+            summary = result["relative_file_path"] + "\n" + summary
             documentation_repo.upsert([result["id"]], [summary])
 
-        count_final = code_repo.count()
-        log = f"Collection {code_repo.name()} contains {count_final} documents, {abs(number_of_docs - count_final)} {
+        count_final = documentation_repo.count()
+        log = f"Collection {documentation_repo.name()} contains {count_final} documents, {abs(number_of_docs - count_final)} {
             'added' if number_of_docs - count_final <= 0 else 'removed'}\n\n"
         print(log)
         return log
