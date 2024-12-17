@@ -2,7 +2,7 @@
 
 ## Installing
 
-Macos
+The server runs on macOS.
 
 - Install pipx
 
