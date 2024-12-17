@@ -33,8 +33,15 @@ poetry env info --path
 
 ## Running the server
 
-To run the dev server:
+It server uses a local LLM, Ollama. To start the Ollama server:
+```
+ollama serve
+```
+
+Then run the dev server:
 
 ```
 fastapi dev server/main.py --port 8080
 ```
+
+Or maybe run the needed python file (indexer.py or documenter.py) directly inside VS Code (F5).
