@@ -73,10 +73,10 @@ def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
     return spec
 
 
-max_file_size = 10000
+max_file_size = 20000
 
 
-def read_file_content(base_folder: str, filepath: str) -> FileResult:
+def read_file_content(base_folder: str, filepath: str, skip_content: bool = False) -> FileResult:
     """
     Reads the content of a file, if not binary, and returns a FileResult containing the content and its MD5 hash.
 
@@ -92,7 +92,7 @@ def read_file_content(base_folder: str, filepath: str) -> FileResult:
     """
     with open(filepath, 'r', encoding='utf-8') as file:
         content = file.read()
-        # Only take the forst 2000 characters, but log the full length if truncated
+        # Only take the first max_file_size characters, but log the full length if truncated
         if len(content) > max_file_size:
             print(
                 f"File {filepath} has {len(content)} characters, truncating to {max_file_size}")
@@ -103,7 +103,7 @@ def read_file_content(base_folder: str, filepath: str) -> FileResult:
         return FileResult(
             file_path=filepath,
             relative_file_path=relative_filepath,
-            content=content,
+            content="" if skip_content else content,
             id=hashlib.md5((relative_filepath + content).encode()).hexdigest()
         )
 
