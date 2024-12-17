@@ -27,7 +27,6 @@ def indexer() -> str:
     removed_ids = [id for id in stored_ids if id not in repo_ids]
 
     # Make sure the ids are unique
-    unique_ids = set(new_ids)
     non_unique_ids = set([id for id in new_ids if new_ids.count(id) > 1])
     if len(non_unique_ids) > 0:
         print('Non-unique ids:', non_unique_ids)
