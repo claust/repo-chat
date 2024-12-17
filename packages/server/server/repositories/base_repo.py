@@ -1,19 +1,13 @@
 from typing import List
-from chromadb import Collection, HttpClient, QueryResult
+from chromadb import HttpClient, QueryResult
 from chromadb.api import ClientAPI
 
 
 class BaseRepository():
-    def __init__(self, collection: str, http_client: ClientAPI = HttpClient(host="localhost", port=8000)) -> None:
+    def __init__(self, collection_name: str, http_client: ClientAPI = HttpClient(host="localhost", port=8000)) -> None:
         self._chroma_client = http_client
         self._collection = self._chroma_client.get_or_create_collection(
-            collection)
-
-    def name(self) -> str:
-        return self._collection.name
-
-    def collection(self) -> Collection:
-        return self._collection
+            collection_name)
 
     def count(self) -> int:
         return self._collection.count()

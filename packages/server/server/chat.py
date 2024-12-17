@@ -1,3 +1,4 @@
+from chromadb import HttpClient
 from dotenv import load_dotenv
 from langchain.agents import tool
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -12,7 +13,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
 from typing import Annotated, List
 
-from server.code_repo import CodeRepository
+from server.repositories.base_repo import CodeRepository, DocumentationRepository
 
 load_dotenv()
 
@@ -25,7 +26,9 @@ memory = MemorySaver()
 
 # Tools
 searchTool = DuckDuckGoSearchRun()
-code_repo = CodeRepository()
+http_client = HttpClient(host="localhost", port=8000)
+code_repo = CodeRepository(http_client=http_client)
+documentation_repo = DocumentationRepository(http_client=http_client)
 
 
 @tool
@@ -34,7 +37,13 @@ def code_searcher(query: str) -> List[List[str]] | None:
     return code_repo.search(query)
 
 
-tools = [searchTool, code_searcher]
+@tool
+def documentation_searcher(query: str) -> List[List[str]] | None:
+    """ Searches the documentation repository for the given query. """
+    return documentation_repo.search(query)
+
+
+tools = [searchTool, code_searcher, documentation_searcher]
 tool_node = ToolNode(tools=tools)
 
 # LLM
@@ -45,7 +54,7 @@ prompt_template = ChatPromptTemplate.from_messages(
         (
             "system",
             """You are an AI assistant that knows a lot about the DIMS code repository. 
-                To answer the user's questions you will look up the code and the documentation provided by the tools.
+                To answer the user's questions you will first look up the documentation and then follow up with a code search if needed.
                 You will base your answers on the information you find.
                 You can help with all code-related questions.
                 """,
