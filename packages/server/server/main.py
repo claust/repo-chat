@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from server.documenter import SourceCodeDocumenter
+from server.single_file_summarizer import SingleFileSummarizer
 from server.indexer import indexer
 
 # To run server in dev mode:
@@ -22,5 +22,5 @@ def index_repo() -> dict[str, str]:
 
 @app.get("/document")
 def document() -> dict[str, str]:
-    result: str = SourceCodeDocumenter().document_code()
+    result: str = SingleFileSummarizer().document_code()
     return {"message": "Document code", "result": result}

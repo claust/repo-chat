@@ -5,7 +5,7 @@ from server.file_utilities import FileResult, get_files_to_process, read_file_co
 from server.repositories.documentation_repo import DocumentationRepository
 
 
-class SourceCodeDocumenter:
+class SingleFileSummarizer:
     def __init__(self) -> None:
         self.llm = ChatOllama(model="llama3.2", num_ctx=5000)
 
@@ -64,4 +64,4 @@ class SourceCodeDocumenter:
 
 
 if __name__ == '__main__':
-    SourceCodeDocumenter().document_code()
+    SingleFileSummarizer().document_code()
