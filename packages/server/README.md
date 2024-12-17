@@ -34,6 +34,7 @@ poetry env info --path
 ## Running the server
 
 It server uses a local LLM, Ollama. To start the Ollama server:
+
 ```
 ollama serve
 ```
