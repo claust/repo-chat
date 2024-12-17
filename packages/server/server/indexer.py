@@ -1,11 +1,10 @@
 import os
-from server.base_repo import BaseRepository
-from server.code_repo import CodeRepository
 from server.file_utilities import get_files_to_process, read_file_content
+from server.repositories.code_repo import CodeRepository
 
 
 def indexer() -> str:
-    code_repo = BaseRepository(collection="repo-chat")
+    code_repo = CodeRepository()
 
     number_of_docs = code_repo.count()
     print(f'{number_of_docs} documents indexed')

@@ -1,9 +1,8 @@
 import os
 
-from chromadb import HttpClient
 from langchain_ollama import ChatOllama
-from server.base_repo import BaseRepository
 from server.file_utilities import FileResult, get_files_to_process, read_file_content
+from server.repositories.documentation_repo import DocumentationRepository
 
 
 class SourceCodeDocumenter:
@@ -11,9 +10,7 @@ class SourceCodeDocumenter:
         self.llm = ChatOllama(model="llama3.2", num_ctx=5000)
 
     def document_code(self) -> str:
-        http_client = HttpClient(host="localhost", port=8000)
-        documentation_repo = BaseRepository(
-            collection="documentation", http_client=http_client)
+        documentation_repo = DocumentationRepository()
 
         number_of_docs = documentation_repo.count()
         print(f'{number_of_docs} documents documented')
