@@ -13,7 +13,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from typing_extensions import TypedDict
 from typing import Annotated, List
 
-from server.repositories.base_repo import CodeRepository, DocumentationRepository
+from server.repositories import CodeRepository, DocumentationRepository
 
 load_dotenv()
 
@@ -55,7 +55,7 @@ prompt_template = ChatPromptTemplate.from_messages(
             "system",
             """You are an AI assistant that knows a lot about the DIMS code repository. 
                 To answer the user's questions you will first look up the documentation and then follow up with a code search if needed.
-                You will base your answers on the information you find.
+                You will base your answers strictly on the information you find.
                 You can help with all code-related questions.
                 """,
         ),

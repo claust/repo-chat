@@ -2,7 +2,7 @@ import os
 
 from langchain_ollama import ChatOllama
 from server.file_utilities import FileResult, get_files_to_process, read_file_content
-from server.repositories.documentation_repo import DocumentationRepository, FolderDocumentation
+from server.repositories import DocumentationRepository, FolderDocumentation
 
 
 class FolderSummarizer:
