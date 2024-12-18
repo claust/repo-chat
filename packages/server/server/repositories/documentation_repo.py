@@ -9,6 +9,10 @@ class DocumentationType(ABC):
     def where(self) -> Where:
         pass
 
+    @property
+    def metadatas(self) -> dict:
+        return self.where()
+
 
 class SingleFileDocumentation(DocumentationType):
     def where(self) -> Where:
@@ -16,6 +20,7 @@ class SingleFileDocumentation(DocumentationType):
 
 
 class FolderDocumentation(DocumentationType):
+
     def where(self) -> Where:
         return {"folder_summary": True}
 

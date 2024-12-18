@@ -4,17 +4,26 @@ import pathspec
 from typing import List
 from typing import TypedDict
 
-ignored_extensions = [".bin", ".sqlite3"]
+IGNORED_EXTENSIONS = [".bin", ".sqlite3"]
+MAX_FILE_SIZE = 20000
 
 
 class FileProcessResult(TypedDict):
     files: List[str]
+    folders: List[str]
 
 
 class FileResult(TypedDict):
     file_path: str
     relative_file_path: str
     content: str
+    id: str
+
+
+class FolderResult(TypedDict):
+    folder_path: str
+    relative_folder_path: str
+    file_results: List[FileResult]
     id: str
 
 
@@ -42,7 +51,7 @@ def get_files_to_process(base_folder: str) -> FileProcessResult:
                 files_and_dirs.append(file_path)
 
     all_files = len(files_and_dirs)
-    print("Found", all_files, "files and dirs")
+    print("Found", all_files, "files")
 
     def is_ignored(path) -> bool:
         relative_path = os.path.relpath(path, base_folder)
@@ -50,16 +59,19 @@ def get_files_to_process(base_folder: str) -> FileProcessResult:
             return True
         if ".git" in path.split(os.sep):
             return True
-        if any(path.endswith(ext) for ext in ignored_extensions):
+        if any(path.endswith(ext) for ext in IGNORED_EXTENSIONS):
             return True
         return False
 
     files = [f for f in files_and_dirs if not is_ignored(f)]
+    all_dirs = [os.path.dirname(f) for f in files]
+    all_dirs = list(set(all_dirs))
+
     files_to_index = len(files)
-    print(f"Found {files_to_index} files to index (ignoring {
+    print(f"Found {files_to_index} files to index in {len(all_dirs)} dirs (ignoring {
           all_files - files_to_index})\n\n")
 
-    return FileProcessResult(files=files)
+    return FileProcessResult(files=files, folders=all_dirs)
 
 
 def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
@@ -71,9 +83,6 @@ def generate_gitignore_spec(base_folder) -> pathspec.PathSpec:
 
     spec = pathspec.PathSpec.from_lines('gitwildmatch', ignored_patterns)
     return spec
-
-
-max_file_size = 20000
 
 
 def read_file_content(base_folder: str, filepath: str, skip_content: bool = False) -> FileResult:
@@ -93,10 +102,10 @@ def read_file_content(base_folder: str, filepath: str, skip_content: bool = Fals
     with open(filepath, 'r', encoding='utf-8') as file:
         content = file.read()
         # Only take the first max_file_size characters, but log the full length if truncated
-        if len(content) > max_file_size:
+        if len(content) > MAX_FILE_SIZE:
             print(
-                f"File {filepath} has {len(content)} characters, truncating to {max_file_size}")
-            content = content[:max_file_size]
+                f"File {filepath} has {len(content)} characters, truncating to {MAX_FILE_SIZE}")
+            content = content[:MAX_FILE_SIZE]
         relative_filepath = os.path.relpath(
             filepath, os.path.dirname(base_folder))
 

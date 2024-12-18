@@ -24,6 +24,9 @@ class BaseRepository():
     def remove_docs(self, ids: list) -> None:
         self._collection.delete(ids=ids)
 
+    def get_by_id(self, id: OneOrMany[ID]) -> List[List[str]] | None:
+        return self._collection.get(id, include=["documents"])["documents"]
+
     def get_all_ids(self) -> List[str]:
         return self._collection.peek(limit=100000)['ids']
 
