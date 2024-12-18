@@ -45,7 +45,8 @@ def indexer() -> str:
         for i in range(0, len(new_ids), batch_size):
             print(f"Adding {i} to {i + batch_size} documents")
             code_repo.upsert(new_ids[i:i + batch_size],
-                             new_docs[i:i + batch_size])
+                             new_docs[i:i + batch_size],
+                             [{"relative_file_path": result["relative_file_path"]} for result in new_file_results[i:i + batch_size]])
         print("Added", len(new_docs), "docs to collection")
     # Remove docs that are no longer in the repo
     if len(removed_ids) > 0:
@@ -62,3 +63,4 @@ def indexer() -> str:
 
 if __name__ == '__main__':
     indexer()
+    os._exit(0)

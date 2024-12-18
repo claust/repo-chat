@@ -1,6 +1,7 @@
 from typing import List
-from chromadb import HttpClient, QueryResult
+from chromadb import HttpClient, Metadata, QueryResult, Where
 from chromadb.api import ClientAPI
+from chromadb.api.types import ID, Document, OneOrMany
 
 
 class BaseRepository():
@@ -17,14 +18,21 @@ class BaseRepository():
     def count(self) -> int:
         return self._collection.count()
 
-    def upsert(self, ids, docs) -> None:
-        self._collection.upsert(ids, documents=docs)
+    def upsert(self, ids: OneOrMany[ID], docs: OneOrMany[Document], metadatas: OneOrMany[Metadata] | None = None) -> None:
+        self._collection.upsert(ids, documents=docs, metadatas=metadatas)
 
     def remove_docs(self, ids: list) -> None:
         self._collection.delete(ids=ids)
 
     def get_all_ids(self) -> List[str]:
         return self._collection.peek(limit=100000)['ids']
+
+    def query_all_ids(self, where: Where | None) -> List[str]:
+        result: QueryResult = self._collection.query(
+            # Empty query to get all documents. Does this actually work?
+            query_texts=[""],
+            where=where, n_results=100000)
+        return result["ids"][0]
 
     def search(self, query: str) -> List[List[str]] | None:
         result: QueryResult = self._collection.query(

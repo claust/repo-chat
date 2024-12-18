@@ -1,15 +1,13 @@
 import os
 
-from chromadb import Where
 from langchain_ollama import ChatOllama
 from server.file_utilities import FileResult, get_files_to_process, read_file_content
-from server.repositories.documentation_repo import DocumentationRepository, SingleFileDocumentation
+from server.repositories.documentation_repo import DocumentationRepository, FolderDocumentation
 
 
-class SingleFileSummarizer:
+class FolderSummarizer:
     def __init__(self) -> None:
         self.llm = ChatOllama(model="llama3.2", num_ctx=5000)
-        self.is_file_summary: Where = {"file_summary": True}
 
     def document_code(self) -> str:
         documentation_repo = DocumentationRepository()
@@ -21,7 +19,9 @@ class SingleFileSummarizer:
         codebase = get_files_to_process(base_folder)
 
         stored_ids = documentation_repo.query_all_ids_of_type(
-            SingleFileDocumentation())
+            FolderDocumentation())
+
+        # WIP
         file_results = [result for result in (read_file_content(
             base_folder, file, skip_content=True) for file in codebase["files"])]
         repo_ids = [result["id"] for result in file_results]
@@ -36,8 +36,7 @@ class SingleFileSummarizer:
             summary = self.prepare_summary(result)
             print(summary[:50])
             summary = result["relative_file_path"] + "\n" + summary
-            documentation_repo.upsert([result["id"]], [summary], [
-                                      {"relative_file_path": result["relative_file_path"], "file_summary": True}])
+            documentation_repo.upsert([result["id"]], [summary])
 
         # Remove docs that are no longer in the repo
         if len(removed_ids) > 0:
@@ -60,13 +59,12 @@ class SingleFileSummarizer:
                 Do not include any conversational elements in your response, like "It appears that you have provided ...".
                 Just respond with the summary and keywords.
                 """),
-            ("user", f"Summarize this file: <file_name>{
-             file_result["relative_file_path"]}</file_name><content>{file_result["content"]}</content>")
+            ("user", f"<file_name>{
+             file_result["relative_file_path"]}</file_name><content>{file_result["content"]}</content><documentation>")
         ]
         response = self.llm.invoke(messages, {})
         return response.content
 
 
 if __name__ == '__main__':
-    SingleFileSummarizer().document_code()
-    os._exit(0)
+    FolderSummarizer().document_code()
