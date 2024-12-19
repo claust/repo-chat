@@ -2,7 +2,6 @@ import hashlib
 import os
 from typing import List
 
-from langchain_community.chat_message_histories import file
 from langchain_ollama import ChatOllama
 from server.file_utilities import FileResult, FolderResult, get_files_to_process, read_file_content
 from server.repositories import DocumentationRepository, FolderDocumentation
