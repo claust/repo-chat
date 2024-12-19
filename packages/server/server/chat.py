@@ -1,3 +1,5 @@
+import os
+from random import randint
 from chromadb import HttpClient
 from dotenv import load_dotenv
 from langchain.agents import tool
@@ -89,7 +91,8 @@ graph_builder.add_edge("chatbot", END)
 
 graph = graph_builder.compile(checkpointer=memory)
 
-config: RunnableConfig = {"configurable":  {"thread_id": "1"}}
+config: RunnableConfig = {"configurable":  {
+    "thread_id": str(randint(0, 10000000000))}}
 
 
 def stream_graph_updates(user_input: str) -> None:
@@ -116,3 +119,4 @@ while True:
         print("User:", user_input)
         stream_graph_updates(user_input)
         break
+os._exit(0)

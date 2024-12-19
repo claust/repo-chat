@@ -1,6 +1,7 @@
 import os
 
 from chromadb import Where
+from langchain_core.language_models import LanguageModelInput
 from langchain_ollama import ChatOllama
 from server.file_utilities import FileResult, get_files_to_process, read_file_content
 from server.repositories import DocumentationRepository, SingleFileDocumentation
@@ -52,7 +53,7 @@ class SingleFileSummarizer:
         return log
 
     def prepare_summary(self, file_result: FileResult) -> str:
-        messages = [
+        messages: LanguageModelInput = [
             ("system", """You are an expert programmer specialised in writing excellent documentation of source code and configuration files.
                 You will read the following source code or configuration and write a summary of the purpose of the code, including any important details.
                 You will end the summary with a comma separated list of the most important keywords that are directly relevant to the code.

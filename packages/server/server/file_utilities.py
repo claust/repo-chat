@@ -23,6 +23,7 @@ class FileResult(TypedDict):
 class FolderResult(TypedDict):
     folder_path: str
     relative_folder_path: str
+    folder_depth: int
     file_results: List[FileResult]
     id: str
 

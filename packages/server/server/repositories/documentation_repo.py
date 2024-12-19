@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from chromadb import Where
+from chromadb import Metadata, Where
 from chromadb.api import ClientAPI
 from server.repositories.base_repo import BaseRepository
 
@@ -10,7 +10,7 @@ class DocumentationType(ABC):
         pass
 
     @property
-    def metadatas(self) -> dict:
+    def metadatas(self) -> Metadata:
         return self.where()
 
 

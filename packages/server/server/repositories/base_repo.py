@@ -24,7 +24,7 @@ class BaseRepository():
     def remove_docs(self, ids: list) -> None:
         self._collection.delete(ids=ids)
 
-    def get_by_id(self, id: OneOrMany[ID]) -> List[List[str]] | None:
+    def get_by_id(self, id: OneOrMany[ID]) -> List[Document] | None:
         return self._collection.get(id, include=["documents"])["documents"]
 
     def get_all_ids(self) -> List[str]:
@@ -37,7 +37,7 @@ class BaseRepository():
             where=where, n_results=100000)
         return result["ids"][0]
 
-    def search(self, query: str) -> List[List[str]] | None:
-        result: QueryResult = self._collection.query(
-            query_texts=[query], n_results=5)
-        return result["documents"]
+    def search(self, query: str, metadata: Metadata | None = None) -> List[str] | None:
+        result: List[str] = self._collection.query(
+            query_texts=[query], n_results=5, where=metadata)
+        return result["documents"][0]
