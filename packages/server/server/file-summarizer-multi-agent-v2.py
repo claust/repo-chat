@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from langchain.schema import SystemMessage
 from langchain_core.runnables import RunnableConfig
+from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from langgraph.func import START, END
 from langgraph.graph.state import Command
@@ -16,12 +17,15 @@ from server.agents.method_documenter_agent import MethodDocumenterAgent
 
 load_dotenv()
 
+# Model
 model = ChatOpenAI()
+# model = ChatOllama(model="llama3.2", num_ctx=5000, format="json")
+# model = ChatOpenAI(api_key="ollama",
+#                   model="llama3.2",
+#                   base_url="http://localhost:11434/v1",
+#                   )
+
 memory = MemorySaver()
-
-
-class Router(TypedDict):
-    next_agent: Literal["file_categorizer", "file_summarizer", "FINISH"]
 
 
 def supervisor_system_prompt():
@@ -46,7 +50,12 @@ method_documenter_agent = MethodDocumenterAgent(
     "method_documenter", model)
 
 
-def supervisor(state: MessagesState) -> Command[Literal["file_summarizer", "__end__"]]:
+class Router(TypedDict):
+    next_agent: Literal["file_categorizer", "method_name_searcher",
+                        "method_documenter", "file_summarizer", "FINISH"]
+
+
+def supervisor(state: MessagesState) -> Command[Literal["file_categorizer", "method_name_searcher", "method_documenter", "file_summarizer", "__end__"]]:
     messages = [
         SystemMessage(
             content=supervisor_system_prompt()),
@@ -58,9 +67,6 @@ def supervisor(state: MessagesState) -> Command[Literal["file_summarizer", "__en
         goto = END
     return Command(goto=goto)
 
-
-# LLM
-model = ChatOpenAI(model="gpt-3.5-turbo")
 
 # Setup graph
 builder = StateGraph(MessagesState)
